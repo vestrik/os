@@ -1,6 +1,7 @@
-#!/bin/bash
+#!/bin/bash 
 
-for i in `seq 150`
-do
-echo $RANDOM >> numbers.txt
+
+for (( i=0; i < 150; i++ )) 
+do 
+od -vAn -N1 -td1 < /dev/random >> numbers.txt 
 done

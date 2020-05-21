@@ -4,8 +4,7 @@
 void RevertString(char *str)
 {
     int k= (strlen(str)-1);    
-    char s [k];
-    strcpy(s,str);     
+    char s [k];         
 	for (int i=0;i<k+1;i++)
     {
         s[i]=str[(k-i)];        

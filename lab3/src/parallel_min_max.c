@@ -116,25 +116,21 @@ int main(int argc, char **argv) {
         for (int i = 0; i < pipes_num; i++) {
             if (pipe(fd[i])==-1)
             {
-                fprintf(stderr, "Pipe Failed" );
+                printf("Pipe Failed");
                 return 1;
-            } else {
-                //printf("sussesful pipe\n");
-            }
+            } 
         }
     } else {
-
         /* clearing file from prew use */
         FILE* cfp;
         cfp = fopen("file.txt", "w+");
         fprintf(cfp, "");
         fclose(cfp);
-
     }
 
   for (int i = 0; i < pnum; i++) {
     pid_t child_pid = fork();
-    child_pids[i] = child_pid;
+    //child_pids[i] = child_pid;
     child_num++;
     if (child_pid >= 0) {
       // successful fork

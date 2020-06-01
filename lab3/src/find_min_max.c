@@ -11,8 +11,7 @@ struct MinMax GetMinMax(int *array, unsigned int begin, unsigned int end) {
     if (min_max.min > array[i])
         min_max.min = array[i];      
     if (min_max.max < array[i])      
-        min_max.max = array[i];
-    printf("%d \n",array[i]);
+        min_max.max = array[i];   
  }  
 
   return min_max;

@@ -20,10 +20,7 @@ int main(void)
        execl("seq" , "seq" , "10","50", NULL );
        return 0;
       
-   }
-   else
-   {
+   }   
    int status = -1;
     waitpid(-1, &status, 0);
-   }
 }

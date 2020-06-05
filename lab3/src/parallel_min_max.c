@@ -93,24 +93,16 @@ int main(int argc, char **argv) {
   int *array = malloc(sizeof(int) * array_size);
   GenerateArray(array, array_size, seed);
   int active_child_processes = 0;
-  //for (int i=0; i<array_size; i++)
-   // printf("%d\t",array[i]);
-  //printf("\n");
 
   struct timeval start_time;
   gettimeofday(&start_time, NULL);
-
-      /* Making pipes array */
-    // 1 for min, 1 for max, for each of pipes
+         
     int pipes_num = pnum * 2;
-    int fd[pipes_num][2];
-    // allocating memory for childs pid's
-    pid_t* child_pids = (int*)malloc(sizeof(child_pids) * pnum);
-    sig_atomic_t child_num = 0;
-    // step for dividing
+    int fd[pipes_num][2];    
+       
     int step = array_size/pnum;
 
-    /* creating pipes from array */
+    
     if (!with_files) {
 
         for (int i = 0; i < pipes_num; i++) {
@@ -121,7 +113,7 @@ int main(int argc, char **argv) {
             } 
         }
     } else {
-        /* clearing file from prew use */
+        
         FILE* cfp;
         cfp = fopen("file.txt", "w+");
         fprintf(cfp, "");
@@ -129,9 +121,8 @@ int main(int argc, char **argv) {
     }
 
   for (int i = 0; i < pnum; i++) {
-    pid_t child_pid = fork();
-    //child_pids[i] = child_pid;
-    child_num++;
+    pid_t child_pid = fork();   
+    
     if (child_pid >= 0) {
       // successful fork
       active_child_processes += 1;
@@ -152,24 +143,15 @@ int main(int argc, char **argv) {
         } else {
           // use pipe here
                     int current_min_pipe = i * 2;
-                    int current_max_pipe = i * 2 + 1;
-
-                    /*  close reading from pipes */
+                    int current_max_pipe = i * 2 + 1;                    
                     close(fd[current_min_pipe][0]);
-                    close(fd[current_max_pipe][0]);
-
-                    int bufferLength = 255;
-
-                    char str_min_num[bufferLength];
-                    char str_max_num[bufferLength];
-
+                    close(fd[current_max_pipe][0]);                    
+                    char str_min_num[255];
+                    char str_max_num[255];
                     sprintf (str_min_num, "%d\n", min_max.min);
                     sprintf (str_max_num, "%d\n", min_max.max);
-
                     write(fd[current_min_pipe][1], str_min_num, strlen(str_min_num)+1);
-                    write(fd[current_max_pipe][1], str_max_num, strlen(str_max_num)+1);
-
-                    /*  close writing to pipes  */
+                    write(fd[current_max_pipe][1], str_max_num, strlen(str_max_num)+1);                    
                     close(fd[current_min_pipe][1]);
                     close(fd[current_max_pipe][1]);
         }
@@ -207,27 +189,17 @@ int main(int argc, char **argv) {
             fscanf(fp, "%s", min_str);
             fscanf(fp, "%s", max_str);
             min = atoi(min_str);
-            max = atoi(max_str);
-
-            // printf("Loaded: min: %d max: %d\n", min, max); // uncomment this to look what did load
-
+            max = atoi(max_str);         
             if (i == pnum - 1) { fclose(fp); }
     } else {
-      // read from pipes
             int current_min_pipe = i * 2;
-            int current_max_pipe = i * 2 + 1;
-            
+            int current_max_pipe = i * 2 + 1;            
             close(fd[current_min_pipe][1]);
-            close(fd[current_max_pipe][1]);
-
-            int bufferLength = 255;
-
-            char min_str[bufferLength];
-            char max_str[bufferLength];
-
-            read(fd[current_min_pipe][0], min_str, bufferLength);
-            read(fd[current_max_pipe][0], max_str, bufferLength);
-
+            close(fd[current_max_pipe][1]);          
+            char min_str[255];
+            char max_str[255];
+            read(fd[current_min_pipe][0], min_str, 255);
+            read(fd[current_max_pipe][0], max_str, 255);
             min = atoi(min_str);
             max = atoi(max_str);
     }

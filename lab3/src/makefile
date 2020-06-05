@@ -19,4 +19,4 @@ find_min_max.o : utils.h find_min_max.h
 	$(CC) -o find_min_max.o -c find_min_max.c $(CFLAGS)
 
 clean :
-	rm utils.o find_min_max.o seq par
+	rm utils.o find_min_max.o seq par exec

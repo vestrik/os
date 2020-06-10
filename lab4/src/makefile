@@ -1,16 +1,16 @@
-CC=gcc -std=c99
+CC=gcc
 CFLAGS=-I.
 
-all : par seq exec
+all : ./1/par
 
-par : utils.o find_min_max.o utils.h find_min_max.h
-	$(CC) -o par utils.o find_min_max.o parallel_min_max.c $(CFLAGS)
+par : ./1/utils.o ./1/find_min_max.o ./1/utils.h ./1/find_min_max.h
+	$(CC) -o ./1/par ./1/utils.o ./1/find_min_max.o ./1/parallel_min_max.c $(CFLAGS)
 
-utils.o : utils.h
-	$(CC) -o utils.o -c utils.c $(CFLAGS)
+utils.o : ./1/utils.h
+	$(CC) -o ./1/utils.o -c ./1/utils.c $(CFLAGS)
 
-find_min_max.o : utils.h find_min_max.h
-	$(CC) -o find_min_max.o -c find_min_max.c $(CFLAGS)
+find_min_max.o : ./1/utils.h ./1/find_min_max.h
+	$(CC) -o ./1/find_min_max.o -c ./1/find_min_max.c $(CFLAGS)
 
 clean :
-	rm utils.o find_min_max.o par
+	rm ./1/utils.o ./1/find_min_max.o ./1/par

@@ -16,6 +16,7 @@
 #include "utils.h"
 
 int main(int argc, char **argv) {
+  int i;
   int seed = -1;
   int array_size = -1;
   int pnum = -1;
@@ -105,7 +106,7 @@ int main(int argc, char **argv) {
     
     if (!with_files) {
 
-        for (int i = 0; i < pipes_num; i++) {
+        for (i = 0; i < pipes_num; i++) {
             if (pipe(fd[i])==-1)
             {
                 printf("Pipe Failed");
@@ -120,7 +121,7 @@ int main(int argc, char **argv) {
         fclose(cfp);
     }
 
-  for (int i = 0; i < pnum; i++) {
+  for (i = 0; i < pnum; i++) {
     pid_t child_pid = fork();   
     
     if (child_pid >= 0) {
@@ -178,7 +179,7 @@ int main(int argc, char **argv) {
   FILE* fp;
   fp = fopen("file.txt", "r");
 
-  for (int i = 0; i < pnum; i++) {
+  for (i = 0; i < pnum; i++) {
     int min = INT_MAX;
     int max = INT_MIN;    
 

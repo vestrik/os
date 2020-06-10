@@ -1,13 +1,16 @@
-CC=gcc -std=c99
+CC=gcc -std=gnu99
 CFLAGS=-I.
 
 all: mutex no_mutex
 
-mutex: mutex.c
+mutex: 
 	$(CC) -o m mutex.c -lpthread $(CFLAGS)
 
-no_mutex: no_mutex.c
+no_mutex: 
 	$(CC)  -o nom no_mutex.c -lpthread $(CFLAGS)
 
+f :
+	$(CC) -o f factorial.c -lpthread $(CFLAGS)
+
 clean: 
-	rm m nom
+	rm m nom f

@@ -15,11 +15,24 @@
 #include "find_min_max.h"
 #include "utils.h"
 
+
+volatile pid_t* child_pids; //Global
+volatile sig_atomic_t child_num; //Global
+
+static void alarmHandler(int signo){
+    printf("SIGKILL\n");
+    for (size_t i = 0; i < child_num; i++) {
+        printf("killing child: %d\n", child_pids[i]);
+        kill(child_pids[i],SIGKILL);
+    }
+}
+
 int main(int argc, char **argv) {
-  int i;
+  
   int seed = -1;
   int array_size = -1;
   int pnum = -1;
+  int timeout = -1;
   bool with_files = false;
 
   while (true) {
@@ -29,6 +42,7 @@ int main(int argc, char **argv) {
                                       {"array_size", required_argument, 0, 0},
                                       {"pnum", required_argument, 0, 0},
                                       {"by_files", no_argument, 0, 'f'},
+                                      {"timeout", required_argument, 0, 0},
                                       {0, 0, 0, 0}};
 
     int option_index = 0;
@@ -63,6 +77,13 @@ int main(int argc, char **argv) {
           case 3:
             with_files = true;
             break;
+         case 4:
+            timeout = atoi(optarg);
+                if (timeout <= 0) {
+                    printf("pnum must be positiv number (better if bigger than 5)%d\n", pnum);
+                    return 1;
+                }
+            break;
 
           defalut:
             printf("Index %d is out of options\n", option_index);
@@ -95,34 +116,42 @@ int main(int argc, char **argv) {
   GenerateArray(array, array_size, seed);
   int active_child_processes = 0;
 
+if (timeout != -1) {
+        printf("ALARM INSTALLED\n");
+        alarm (timeout);
+        signal(SIGALRM, alarmHandler);
+}
+
   struct timeval start_time;
   gettimeofday(&start_time, NULL);
          
     int pipes_num = pnum * 2;
-    int fd[pipes_num][2];    
-       
+    int fd[pipes_num][2]; 
+    child_pids = (int*)malloc(sizeof(child_pids) * pnum);
+    child_num = 0;
     int step = array_size/pnum;
 
     
     if (!with_files) {
 
-        for (i = 0; i < pipes_num; i++) {
+        for (int i = 0; i < pipes_num; i++) {
             if (pipe(fd[i])==-1)
             {
-                printf("Pipe Failed");
+                fprintf(stderr, "Pipe Failed" );
                 return 1;
             } 
         }
-    } else {
-        
+    } else {        
         FILE* cfp;
-        cfp = fopen("file.txt", "w+");
+        cfp = fopen("1/file.txt", "w+");
         fprintf(cfp, "");
         fclose(cfp);
     }
 
-  for (i = 0; i < pnum; i++) {
-    pid_t child_pid = fork();   
+  for (int i = 0; i < pnum; i++) {
+    pid_t child_pid = fork();
+    child_pids[i] = child_pid;
+    child_num++;   
     
     if (child_pid >= 0) {
       // successful fork
@@ -131,12 +160,17 @@ int main(int argc, char **argv) {
           int begin = i * step;
           int end = (i + 1) * step;                
           if (i == pnum -1) { end = array_size - 1;}
+        
+        if (timeout != -1) 
+        {sleep(timeout);}
+         
+         
           struct MinMax min_max = GetMinMax(array, begin, end);
 
         if (with_files) {
           // use files here
             FILE * fp;
-            fp = fopen ("file.txt", "a+");
+            fp = fopen ("1/file.txt", "a+");
             fprintf(fp, "%d\n%d\n", min_max.min, min_max.max);            
             fclose (fp);
 
@@ -167,19 +201,18 @@ int main(int argc, char **argv) {
 
   while (active_child_processes > 0) {
     // your code here
-    int status = -1;
-    waitpid(-1, &status, 0);
-
-    active_child_processes -= 1;
+        int status = -1;
+        waitpid(-1, &status, 0);        
+        active_child_processes -= 1;
   }
 
   struct MinMax min_max;
   min_max.min = INT_MAX;
   min_max.max = INT_MIN;
   FILE* fp;
-  fp = fopen("file.txt", "r");
+  fp = fopen("1/file.txt", "r");
 
-  for (i = 0; i < pnum; i++) {
+  for (int i = 0; i < pnum; i++) {
     int min = INT_MAX;
     int max = INT_MIN;    
 

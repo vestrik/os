@@ -21,9 +21,9 @@ main() {
   int i = 0; /* Automatic variable */
 
   /* Printing addressing information */
-  printf("\nAddress etext: %8X \n", &etext);
-  printf("Address edata: %8X \n", &edata);
-  printf("Address end  : %8X \n", &end);
+  printf("\nAddress etext: %8X \n", &etext); //текст программы (etext)
+  printf("Address edata: %8X \n", &edata); //инициализированные данные (edata)
+  printf("Address end  : %8X \n", &end); //неинициализированные данные (конец)
 
   SHW_ADR("main", main);
   SHW_ADR("showit", showit);

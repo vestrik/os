@@ -12,5 +12,8 @@ no_mutex:
 f :
 	$(CC) -o f factorial.c -lpthread $(CFLAGS)
 
+d :
+	$(CC) -o d deadlock.c -lpthread $(CFLAGS)
+
 clean: 
-	rm m nom f
+	rm m nom f d

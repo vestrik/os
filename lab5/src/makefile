@@ -1,7 +1,7 @@
 CC=gcc -std=gnu99
 CFLAGS=-I.
 
-all: mutex no_mutex
+all: f d mutex no_mutex
 
 mutex: 
 	$(CC) -o m mutex.c -lpthread $(CFLAGS)

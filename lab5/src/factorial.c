@@ -8,11 +8,13 @@
 
 
 
-pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-long long int total_fac=1;
-
+long long int globalResMutex=1;
+long long int globalRes=1;
 long long int mod;
+long long int modResM=1;
+long long int modRes=1;
 
 
 typedef struct FactorialArgs {
@@ -24,26 +26,18 @@ typedef struct FactorialArgs {
 
 void *Factorial(void *arg)
 {  
-    long long int result=1;
-
-   thread_data *tdata=(thread_data *)arg;   
-   
-   //printf("begin %d end %d\n",tdata->begin,tdata->end);
+   long long int result=1;
+   thread_data *tdata=(thread_data *)arg;     
    for (int i = tdata->begin; i < tdata->end; i++)
-    {
-        
-        result*=(i+1);
-       // printf("i=%d, %lli\n",i,result);
-        
-    }
-
-   tdata->res=result;
-   //printf("res thread %lli\n",tdata->result);
-   
-  
-   pthread_exit(NULL);
+    {        
+        result*=(i+1);               
+    } 
+    pthread_mutex_lock(&mutex);    
+    globalResMutex *= result;   
+    pthread_mutex_unlock(&mutex);  
+    globalRes *= result; 
+    pthread_exit(NULL);
 }
-
 
 
 int main(int argc, char **argv) {
@@ -68,8 +62,6 @@ int main(int argc, char **argv) {
         switch (option_index) {
           case 0:
             k = atoi(optarg);
-            // your code here
-            // error handling
             if (k <= 0)
             {
                 printf("k must be a positive number");
@@ -78,8 +70,6 @@ int main(int argc, char **argv) {
             break;
           case 1:
             mod = atoi(optarg);
-            // your code here
-            // error handling
             if(mod <= 0)
             {
                 printf("Mod must be a positive number");
@@ -88,8 +78,6 @@ int main(int argc, char **argv) {
             break;
           case 2:
             threads_num = atoi(optarg);
-            // your code here
-            // error handling
             if(threads_num <= 0)
             {
                 printf("Number of threads must be a positive");
@@ -133,16 +121,15 @@ int main(int argc, char **argv) {
       return 1;
     }
   }
-  
-  total_fac=1;  
+      
   for (uint32_t i = 0; i < threads_num; i++) 
   { 
-    pthread_join(threads[i], NULL);   
-    printf(" = %lli\n",  args[i].res);
-    total_fac*=args[i].res; 
-   
+    pthread_join(threads[i], NULL);      
   }
-  printf("factorial %lli\n",total_fac); 
   
+  modResM=globalResMutex%mod;
+  modRes=globalRes%mod;
+  printf("mutex factorial %lli, module %lli\n",globalResMutex, modResM);   
+  printf("no mutex factorial %lli, module %lli\n", modResM,modRes);   
   return 0;
 }

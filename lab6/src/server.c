@@ -237,11 +237,12 @@ int main(int argc, char **argv)
 		}
 
 		shutdown(client_fd, SHUT_RDWR);
-		close(client_fd);
+		close(client_fd);        
         f=1;
         
 	}
-    
+
+    close(server_fd);   
 
 	return 0;
 }

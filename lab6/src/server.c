@@ -13,9 +13,9 @@
 #include <sys/types.h>
 
 #include "pthread.h"
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
-uint64_t f;
+uint64_t f=1;
 
 typedef struct FactorialArgs {
   uint64_t begin;
@@ -46,7 +46,7 @@ uint64_t Factorial(const struct FactorialArgs *args)
         ans = (ans * i);               
     } 
 
-    printf("begin:%llu, end:%llu, ans:%2llu\n",tdata->begin,tdata->end,ans);
+    printf("begin:%lu, end:%lu, ans:%4lu\n",tdata->begin,tdata->end,ans);
     
 	return ans;
 }
@@ -179,7 +179,7 @@ int main(int argc, char **argv)
 			memcpy(&end, from_client + sizeof(uint64_t), sizeof(uint64_t));
 			memcpy(&mod, from_client + 2 * sizeof(uint64_t), sizeof(uint64_t));
 
-			fprintf(stdout, "Server: Receive: %llu %llu %llu\n", begin, end, mod);
+			fprintf(stdout, "Server: Receive: %lu %lu %lu\n", begin, end, mod);
 
 			struct FactorialArgs args[tnum];
             int part = (end-begin+1)/tnum; 
@@ -189,9 +189,8 @@ int main(int argc, char **argv)
 			    {
                     args[i].begin = begin;
                     args[i].end = begin + ((end-begin)/tnum ); 
-
 				    args[i].mod = mod;
-				    printf("begin = %d end = %d m = %d\n",  args[i].begin,  args[i].end,  args[i].mod);
+				    //printf("begin = %d end = %d m = %d\n",  args[i].begin,  args[i].end,  args[i].mod);
 			    }
 			    else
 			    {
@@ -203,7 +202,7 @@ int main(int argc, char **argv)
 				        args[i].end = end;
 				    }
 
-				    printf("begin = %d end = %d m = %d\n",  args[i].begin,  args[i].end,  args[i].mod);
+				    //printf("begin = %d end = %d m = %d\n",  args[i].begin,  args[i].end,  args[i].mod);
 			    }
 
 				if (pthread_create(&(threads[i]), NULL, (void *)ThreadFactorial, (void *)&(args[i])))
@@ -218,15 +217,18 @@ int main(int argc, char **argv)
 			{
 				uint64_t result = 0;
 				pthread_join(threads[i], (void *)&result);
-                f=result;
+                pthread_mutex_lock(&mut);
+                f*=result;
+                pthread_mutex_unlock(&mut);
 				total = MultModulo(total, result, mod);
 			}
 
-			printf("Server: factorial: %llu, Total: %llu\n",f,total);
+			//printf("Server: factorial: %llu, Total: %llu\n",f,total);
+            printf("Server: factorial: %lu\n",f);
 
-			char buffer[sizeof(total)];
-			memcpy(buffer, &total, sizeof(total));
-			err = send(client_fd, buffer, sizeof(total), 0);
+			char buffer[sizeof(f)];
+			memcpy(buffer, &f, sizeof(f));
+			err = send(client_fd, buffer, sizeof(f), 0);
 			if (err < 0)
 			{
 				fprintf(stderr, "Server: Can't send data to client\n");
@@ -236,7 +238,10 @@ int main(int argc, char **argv)
 
 		shutdown(client_fd, SHUT_RDWR);
 		close(client_fd);
+        f=1;
+        
 	}
+    
 
 	return 0;
 }

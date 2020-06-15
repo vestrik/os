@@ -63,7 +63,7 @@ struct TaskToServer
 void sendTaskToServer(void * args)
 {
 		    struct TaskToServer * task = (struct TaskToServer *)args;
-		    printf("Client: sending data to server begin = %d end = %d mod = %d\n", task->begin, task->end, task->mod);
+		    printf("Client: sending data to server begin = %lu end = %lu mod = %lu\n", task->begin, task->end, task->mod);
 			struct hostent *hostname = gethostbyname((task->server).ip);
 			if (hostname == NULL)
 			{
@@ -82,13 +82,13 @@ void sendTaskToServer(void * args)
 				fprintf(stderr, "Client: Socket creation failed!\n");
 				exit(1);
 			}
-            printf("Client: socket created\n");
+            //printf("Client: socket created\n");
 			if (connect(sck, (struct sockaddr *)&server, sizeof(server)) < 0)
 			{
 				fprintf(stderr, "Client: Connection failed\n");
 				exit(1);
 			}
-            printf("connected to server\n");
+            //printf("connected to server\n");
 			char charTask[sizeof(uint64_t) * 3];
 			memcpy(charTask, &(task->begin), sizeof(uint64_t));
 			memcpy(charTask + sizeof(uint64_t), &(task->end), sizeof(uint64_t));
@@ -109,12 +109,12 @@ void sendTaskToServer(void * args)
 
 			uint64_t answer = 0;
 			memcpy(&answer, response, sizeof(uint64_t));
-			printf("Client thread: Answer: %llu\n", answer);
+			//printf("Client thread: Answer: %llu\n", answer);
 			
 			close(sck);
-			pthread_mutex_lock(&mut);
-			result = MultModulo(result, answer, task->mod);
-			pthread_mutex_unlock(&mut);
+			pthread_mutex_lock(&mut);            
+			result=result*answer;
+			pthread_mutex_unlock(&mut);           
 			return;
 }
 
@@ -203,7 +203,7 @@ uint64_t main(int argc, char **argv)
 					fprintf(stderr, "Invalid argument k\n");
 					exit(1);
 				}
-				printf("k = %llu\n", k);
+				printf("k = %lu  ", k);
 				break;
 			case 1:
 				if (!ConvertStringToUI64(optarg, &mod))
@@ -211,7 +211,7 @@ uint64_t main(int argc, char **argv)
 					fprintf(stderr, "Invalid argument mod\n");
 					exit(1);
 				}
-				printf("mod = %llu\n", mod);
+				printf("mod = %lu\n", mod);
 				break;
 			case 2:
 				memcpy(servers, optarg, strlen(optarg) + 1);//XXX
@@ -284,9 +284,12 @@ uint64_t main(int argc, char **argv)
       }
 	}
 	
-	printf("Client: result = %u \n", result);
+	printf("Client: factorial = %lu \n", result);    
+    result = MultModulo(result, result, task->mod);
+    printf("Client: factorial mod = %lu \n", result);
 	
 	free(to);
+    result = 1;
 
 	return 0;
 }

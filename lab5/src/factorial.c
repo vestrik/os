@@ -3,18 +3,13 @@
 #include <stdlib.h>
 
 #include <pthread.h>
-
 #include <getopt.h>
-
-
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 long long int globalResMutex=1;
 long long int mod;
 long long int modResM=1;
-
-
 
 typedef struct FactorialArgs {
    int begin;

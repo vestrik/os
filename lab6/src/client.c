@@ -14,27 +14,16 @@
 #include <sys/types.h>
 
 #include <pthread.h>
+#include "multmodulo.h"
 
 uint64_t result = 1;
+uint64_t fact = 1;
 pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
 struct Server {
   char ip[255];
   int port;
 };
-
-uint64_t MultModulo(uint64_t a, uint64_t b, uint64_t mod) {
-  uint64_t result = 0;
-  a = a % mod;
-  while (b > 0) {
-    if (b % 2 == 1)
-      result = (result + a) % mod;
-    a = (a * 2) % mod;
-    b /= 2;
-  }
-
-  return result % mod;
-}
 
 bool ConvertStringToUI64(const char *str, uint64_t *val) {
   char *end = NULL;
@@ -105,15 +94,24 @@ void sendTaskToServer(void * args)
 			{
 				fprintf(stderr, "Client: Recieve failed\n");
 				exit(1);
-			}
+			}   
+			uint64_t answer1 = 0;
+			memcpy(&answer1, response, sizeof(uint64_t));
 
-			uint64_t answer = 0;
-			memcpy(&answer, response, sizeof(uint64_t));
-			//printf("Client thread: Answer: %llu\n", answer);
+            if (recv(sck, response, sizeof(response), 0) < 0)
+			{
+				fprintf(stderr, "Client: Recieve failed\n");
+				exit(1);
+			}        
+			uint64_t answer2 = 0;
+			memcpy(&answer2, response, sizeof(uint64_t));
+            
+			printf("Client thread: Answer: mod %lu fac %lu\n", answer1,answer2);
 			
 			close(sck);
-			pthread_mutex_lock(&mut);            
-			result=result*answer;
+			pthread_mutex_lock(&mut);   
+            fact*=answer2;
+            result=MultModulo(result, answer1,task->mod);            
 			pthread_mutex_unlock(&mut);           
 			return;
 }
@@ -240,14 +238,16 @@ uint64_t main(int argc, char **argv)
 	}
 
 	struct Server *to = parseFile(servers);
-	unsigned int servers_num = getServerNum(to);
-	
+	unsigned int servers_num = getServerNum(to);     	
 	printf("Client: Number of servers = %d\n", servers_num);    
-	struct TaskToServer * task = malloc(sizeof(struct TaskToServer)*servers_num);
-	
-	uint64_t factorial = 0;
+	struct TaskToServer * task = malloc(sizeof(struct TaskToServer)*servers_num);	
     pthread_t thread[servers_num];
     int part =k/servers_num;
+    int l=0;
+    if(k%2!=0)
+    {
+        l=1;
+    }
 	for (int i = 0; i < servers_num; i++)
 	{
 	    if(i==0)
@@ -263,9 +263,9 @@ uint64_t main(int argc, char **argv)
 			task[i].begin = task[i-1].end+1;
 			task[i].end = task[i].begin + (k-1)/servers_num;
 			task[i].mod = mod;
-			if(task[i].end > (k+1))
+			if(task[i].end > (k))
 			{
-				(task[i]).end = k+1;
+				(task[i]).end = k;
 			}
 		}
 		if (pthread_create(&(thread[i]), NULL, (void *)sendTaskToServer, (void *)&(task[i])) != 0) 
@@ -284,9 +284,9 @@ uint64_t main(int argc, char **argv)
       }
 	}
 	
-	printf("Client: factorial = %lu \n", result);    
-    result = MultModulo(result, result, task->mod);
-    printf("Client: factorial mod = %lu \n", result);
+	//printf("Client: factorial = %lu, %lu \n", result,result%mod);    
+    //result = MultModulo(1, result, task->mod);
+    printf("Client: factorial = %lu, mod = %lu \n", fact,result);  
 	
 	free(to);
     result = 1;

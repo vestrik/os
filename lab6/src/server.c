@@ -4,14 +4,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-
 #include <getopt.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 
+#include "multmodulo.h"
 #include "pthread.h"
 pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
@@ -23,18 +22,6 @@ typedef struct FactorialArgs {
   uint64_t mod;
 } thread_data;
 
-uint64_t MultModulo(uint64_t a, uint64_t b, uint64_t mod) {
-  uint64_t result = 0;
-  a = a % mod;
-  while (b > 0) {
-    if (b % 2 == 1)
-      result = (result + a) % mod;
-    a = (a * 2) % mod;
-    b /= 2;
-  }
-
-  return result % mod;
-}
 
 uint64_t Factorial(const struct FactorialArgs *args)
 {
@@ -179,7 +166,7 @@ int main(int argc, char **argv)
 			memcpy(&end, from_client + sizeof(uint64_t), sizeof(uint64_t));
 			memcpy(&mod, from_client + 2 * sizeof(uint64_t), sizeof(uint64_t));
 
-			fprintf(stdout, "Server: Receive: %lu %lu %lu\n", begin, end, mod);
+			fprintf(stdout, "Server: Receive: %lu %lu %lu\n", begin, end, mod);           
 
 			struct FactorialArgs args[tnum];
             int part = (end-begin+1)/tnum; 
@@ -217,17 +204,19 @@ int main(int argc, char **argv)
 			{
 				uint64_t result = 0;
 				pthread_join(threads[i], (void *)&result);
-                pthread_mutex_lock(&mut);
+                pthread_mutex_lock(&mut); 
                 f*=result;
-                pthread_mutex_unlock(&mut);
-				total = MultModulo(total, result, mod);
+			    total = MultModulo(total, result, mod);
+			    pthread_mutex_unlock(&mut);                 
 			}
 
-			//printf("Server: factorial: %llu, Total: %llu\n",f,total);
-            printf("Server: factorial: %lu\n",f);
+			printf("Server: factorial: %lu, Total: %lu\n",f,total);
+            //printf("Server: factorial: %lu\n",f);
 
-			char buffer[sizeof(f)];
-			memcpy(buffer, &f, sizeof(f));
+			char buffer[sizeof(total)];
+			memcpy(buffer, &total, sizeof(total));
+			err = send(client_fd, buffer, sizeof(total), 0);
+            memcpy(buffer, &f, sizeof(f));
 			err = send(client_fd, buffer, sizeof(f), 0);
 			if (err < 0)
 			{

@@ -11,10 +11,9 @@
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 long long int globalResMutex=1;
-long long int globalRes=1;
 long long int mod;
 long long int modResM=1;
-long long int modRes=1;
+
 
 
 typedef struct FactorialArgs {
@@ -34,8 +33,7 @@ void *Factorial(void *arg)
     } 
     pthread_mutex_lock(&mutex);    
     globalResMutex *= result;   
-    pthread_mutex_unlock(&mutex);  
-    globalRes *= result; 
+    pthread_mutex_unlock(&mutex);       
     pthread_exit(NULL);
 }
 
@@ -127,9 +125,7 @@ int main(int argc, char **argv) {
     pthread_join(threads[i], NULL);      
   }
   
-  modResM=globalResMutex%mod;
-  modRes=globalRes%mod;
-  printf("mutex factorial %lli, module %lli\n",globalResMutex, modResM);   
-  printf("no mutex factorial %lli, module %lli\n", modResM,modRes);   
+  modResM=globalResMutex%mod;  
+  printf("mutex factorial %lli, module %lli\n",globalResMutex, modResM);     
   return 0;
 }

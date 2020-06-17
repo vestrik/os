@@ -7,8 +7,8 @@
 
 void do_one_thing();
 void do_another_thing();
-int common1 = 0; /* A shared variable for two threads */
-int common2 = 0; /* A shared variable for two threads */
+int common1 = 0; 
+int common2 = 0; 
 pthread_mutex_t mut1 = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mut2 = PTHREAD_MUTEX_INITIALIZER;
 

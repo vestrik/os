@@ -68,7 +68,7 @@ void do_one_thing(int *pnum_times) {
   for (i = 0; i < 20; i++) {        
     //pthread_mutex_lock(&mut1);    
     printf("doing one thing\n");
-    work = *pnum_times;
+    work = i;
     printf("counter = %d\n", work);
     work++; 
     for (k = 0; k < 500000; k++)
@@ -76,10 +76,11 @@ void do_one_thing(int *pnum_times) {
     *pnum_times = work;     
 	//pthread_mutex_unlock(&mut1);  
     sem_post(&sem1);  
-    sem_wait(&sem2);     
+    sem_wait(&sem2);
      
   }
-  sem_post(&sem1);
+  sem_post(&sem1); 
+  
 }
 
 void do_another_thing(int *pnum_times) {
@@ -91,7 +92,7 @@ void do_another_thing(int *pnum_times) {
     //wait(1);    
    // pthread_mutex_lock(&mut1);     
     printf("doing another thing\n");
-    work = *pnum_times;
+    work = i;
     printf("counter = %d\n", work);
     work++; 
     for (k = 0; k < 500000; k++)
@@ -101,6 +102,7 @@ void do_another_thing(int *pnum_times) {
     sem_post(&sem2); 
     sem_wait(&sem1);
   }
+  sem_post(&sem2); 
 }
 
 void do_wrap_up(int counter) {

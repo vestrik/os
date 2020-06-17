@@ -42,11 +42,11 @@ int main() {
 
 void do_one_thing() {
   pthread_mutex_lock(&mut1);
-  common2 = 1;
-  sleep(1);
+  common2 = 1; 
+  printf("before deadlock for pthread1\n");
   pthread_mutex_lock(&mut2);
   common1 = 1;
-  printf("Deadlock for pthread1\n");
+  printf("after deadlock for pthread1\n");
   pthread_mutex_unlock(&mut2);
   pthread_mutex_unlock(&mut1);
 }
@@ -54,9 +54,10 @@ void do_one_thing() {
 void do_another_thing() {
   pthread_mutex_lock(&mut2);
   common2 = 1;  
+  printf("before deadlock for pthread2\n");
   pthread_mutex_lock(&mut1);
   common1 = 1;
-  printf("Deadlock for pthread2\n");
+  printf("after deadlock for pthread2\n");
   pthread_mutex_unlock(&mut1);
   pthread_mutex_unlock(&mut2);
 }

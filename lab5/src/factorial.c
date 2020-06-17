@@ -4,8 +4,11 @@
 
 #include <pthread.h>
 #include <getopt.h>
+#include <semaphore.h>
+
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+sem_t sem;
 
 long long int globalResMutex=1;
 long long int mod;
@@ -21,14 +24,19 @@ typedef struct FactorialArgs {
 void *Factorial(void *arg)
 {  
    long long int result=1;
-   thread_data *tdata=(thread_data *)arg;       
+   thread_data *tdata=(thread_data *)arg;   
+   printf("b:%d, e:%d\n",tdata->begin,tdata->end); 
+     
    for (int i = tdata->begin; i <= tdata->end; i++)
     {        
         result*=i;               
     }     
-    pthread_mutex_lock(&mutex);    
+    //pthread_mutex_lock(&mutex);       
+       
     globalResMutex *= result;   
-    pthread_mutex_unlock(&mutex);       
+    //pthread_mutex_unlock(&mutex); 
+     
+    sem_post(&sem);   
     pthread_exit(NULL);
 }
 
@@ -119,11 +127,24 @@ int main(int argc, char **argv) {
 	    }
     }
   }
+
+ int res = sem_init(&sem, 0, 0);
+ if (res != 0) {
+  printf("Semaphore initialization failed");
+  
+  exit(EXIT_FAILURE);
+ }
+ else
+ printf("Semaphore initializated\n");
+ 
+
   for (uint32_t i = 0; i < threads_num; i++) {
-    if (pthread_create(&threads[i], NULL, (void*)Factorial, (void *)&args[i])) {
+    int a=pthread_create(&threads[i], NULL, (void*)Factorial, (void *)&args[i]);
+    if (a) {
       printf("Error: pthread_create failed!\n");
       return 1;
     }
+    sem_wait(&sem); 
   }
       
   for (uint32_t i = 0; i < threads_num; i++) 
@@ -133,5 +154,6 @@ int main(int argc, char **argv) {
   
   modResM=globalResMutex%mod;  
   printf("mutex factorial %lli, module %lli\n",globalResMutex, modResM);     
+  sem_destroy(&sem);
   return 0;
 }

@@ -26,11 +26,11 @@ typedef struct FactorialArgs {
 void *Factorial(void *arg)
 {  
    long long int result=1;
-   thread_data *tdata=(thread_data *)arg;     
-   for (int i = tdata->begin; i < tdata->end; i++)
+   thread_data *tdata=(thread_data *)arg;       
+   for (int i = tdata->begin; i <= tdata->end; i++)
     {        
-        result*=(i+1);               
-    } 
+        result*=i;               
+    }     
     pthread_mutex_lock(&mutex);    
     globalResMutex *= result;   
     pthread_mutex_unlock(&mutex);       
@@ -109,9 +109,20 @@ int main(int argc, char **argv) {
   
   for (int i = 0; i < threads_num; i++)
   {
-
-    args[i].begin = part * i;
-    args[i].end = args[i].begin + part;  
+    if(i==0) 
+    {
+        args[i].begin = 1;
+        args[i].end = 1+(k-1)/threads_num;;
+    }
+    else 
+    {
+        args[i].begin = args[i-1].end+1;
+        args[i].end = args[i].begin + (k-1)/threads_num;;    
+        if(args[i].end > (k))
+	    {
+	        (args[i]).end = k;
+	    }
+    }
   }
   for (uint32_t i = 0; i < threads_num; i++) {
     if (pthread_create(&threads[i], NULL, (void*)Factorial, (void *)&args[i])) {

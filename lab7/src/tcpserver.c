@@ -24,8 +24,8 @@ int main(int argc, char *argv[]) {
  while (1) {
     int current_optind = optind ? optind : 1;
     
-    static struct option options[] = {{"BUFSIZE", required_argument, 0, 0},
-                                          {"SERV_PORT", required_argument, 0, 0},
+    static struct option options[] = {{"bufsize", required_argument, 0, 0},
+                                          {"serv_port", required_argument, 0, 0},
                                           {0, 0, 0, 0}};
     
     int option_index = 0;
@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
             case 0:
             BUFSIZE = atoi(optarg);
             if (BUFSIZE < 1) { 
-                BUFSIZE=-1;
+                printf("bufsize must be a positive number\n");
                 return 1;
             }
             break;
@@ -47,6 +47,7 @@ int main(int argc, char *argv[]) {
             SERV_PORT = atoi(optarg);
             if (SERV_PORT < 0) { 
                 SERV_PORT=-1;
+                printf("serv_port must be a positive number\n");
                 return 1;
             }
             break;

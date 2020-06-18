@@ -60,12 +60,13 @@ void sendTaskToServer(void * args)
 				exit(1);
 			}
             //Заполняем структуру адреса, на котором будет работать сервер
-			struct sockaddr_in server;
-			server.sin_family = AF_INET; //ip
-			server.sin_port = htons((task->server).port); //port
-			server.sin_addr.s_addr = *((unsigned long *)hostname->h_addr); //сетевой интерфейс
+			struct sockaddr_in6 server;
+			server.sin6_family = AF_INET6; //ip
+			server.sin6_port = htons((task->server).port); //port
+			//server.sin6_addr.s6_addr = *((unsigned long *)hostname->h_addr); //сетевой интерфейс
+            inet_pton(AF_INET6, hostname->h_addr, &server.sin6_addr); //inet_pton - преобразует строку символов в сетевой адрес и копирует ее в server.sin6_addr
 
-			int sck = socket(AF_INET, SOCK_STREAM, 0); //создаем сокет, AF_INET для сетевого протокола IPv4
+			int sck = socket(AF_INET6, SOCK_STREAM, 0); //создаем сокет, AF_INET для сетевого протокола IPv4
 			if (sck < 0)
 			{
 				fprintf(stderr, "Client: Socket creation failed!\n");

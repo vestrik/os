@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	int server_fd = socket(AF_INET, SOCK_STREAM, 0); //создаем сокет, SOCK_STREAM - надёжная потокоориентированная служба (сервис) или потоковый сокет
+	int server_fd = socket(AF_INET6, SOCK_STREAM, 0); //создаем сокет, SOCK_STREAM - надёжная потокоориентированная служба (сервис) или потоковый сокет
     //AF_INET для сетевого протокола IPv4
 	if (server_fd < 0)
 	{
@@ -104,10 +104,11 @@ int main(int argc, char **argv)
 	}
 
     //Заполняем структуру адреса, на котором будет работать сервер
-	struct sockaddr_in server;
-	server.sin_family = AF_INET; //ip
-	server.sin_port = htons((uint16_t)port); //post
-	server.sin_addr.s_addr = htonl(INADDR_ANY); //любой сетевой интерфейс
+	struct sockaddr_in6 server;
+	server.sin6_family = AF_INET6; //ip
+	server.sin6_port = htons((uint16_t)port); //post
+	//server.sin6_addr.s_addr = htonl(INADDR_ANY); //любой сетевой интерфейс
+    server.sin6_addr = in6addr_any;
 
 	int opt_val = 1;
 	setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof(opt_val)); //параметры сокета SO_REUSEADDR - разрешает повторное использование локальных адресов
@@ -132,7 +133,7 @@ int main(int argc, char **argv)
 	{
 		struct sockaddr_in client;
 		socklen_t client_len = sizeof(client);
-		int client_fd = accept(server_fd, (struct sockaddr *)&client, &client_len); // принятие запроса на установление соединения от удаленного хоста
+		int client_fd = accept(server_fd, (struct sockaddr *)&client, &client_len); // принятие запроса на установление соединения от хоста
 
 		if (client_fd < 0)
 		{

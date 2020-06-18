@@ -104,7 +104,28 @@ void *servudp(void *arg)
 
   write(1, "Enter string\n", 13);
 
-  while ((n = read(0, sendline, buff)) > 0) {
+  FILE* cfp;
+  cfp = fopen("client.txt", "w+");
+  fprintf(cfp, "");  
+  char c[1]; 
+
+  for (int i=1;i<=5;i++)
+  {
+      
+      fprintf(cfp, "%d\n", i); 
+	  sprintf(sendline,"%d",i);
+      if (sendto(sockfd, sendline, buff, 0, (SADDR *)&servaddr, SLEN) == -1) {
+      perror("sendto problem");
+      exit(1);
+    }     
+      
+  }
+  fclose(cfp);
+
+
+
+
+  /*while ((n = read(0, sendline, buff)) > 0) {
     if (sendto(sockfd, sendline, n, 0, (SADDR *)&servaddr, SLEN) == -1) {
       perror("sendto problem");
       exit(1);
@@ -114,7 +135,7 @@ void *servudp(void *arg)
       perror("recvfrom problem");
       exit(1);
     }    printf("REPLY FROM SERVER= %s\n", recvline);
-  }
+  }*/
   close(sockfd);
 
 }

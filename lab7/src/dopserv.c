@@ -65,17 +65,20 @@ void *servtcp(void *arg)
     }
     printf("connection established\n");
     FILE* fp;      
-    fp = fopen("server.txt", "w+");
-    fprintf(fp, ""); 
+    //fp = fopen("server.txt", "w+");
+    //fprintf(fp, ""); 
 
     while ((nread = read(cfd, buf, buff)) > 0) {
-      write(1, &buf, nread);
+    
+     // write(1, &buf, nread);
 
       int i=atoi(buf);    
       fp = fopen("server.txt", "a+");
       fprintf(fp, "%d\n", i); 
+      printf("%d\n",i);
       fclose(fp);
     }
+    
 
     if (nread == -1) {
       perror("read");

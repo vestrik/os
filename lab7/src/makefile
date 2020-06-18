@@ -21,4 +21,4 @@ udpserver :
 	$(CC) -o udpserver udpserver.c $(CFLAGS)
 
 clean :
-	rm -f tcpclient tcpserver udpclient udpserver dopserv dopclient
+	rm -f tcpclient tcpserver udpclient udpserver dopserv dopclient server.txt client.txt core.*

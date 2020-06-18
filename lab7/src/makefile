@@ -1,8 +1,11 @@
-CC=gcc
+CC=gcc -std=gnu99
 CFLAGS=-I.
-all : tcpclient tcpserver udpclient udpserver
+all : tcpclient tcpserver udpclient udpserver dop
 tcp : tcpclient tcpserver
 udp : udpclient udpserver
+
+dop : 
+	$(CC) -o dopserv dopserv.c -lpthread $(CFLAGS)
 
 tcpclient : 
 	$(CC) -o tcpclient tcpclient.c $(CFLAGS)
@@ -17,4 +20,4 @@ udpserver :
 	$(CC) -o udpserver udpserver.c $(CFLAGS)
 
 clean :
-	rm -f tcpclient tcpserver udpclient udpserver
+	rm -f tcpclient tcpserver udpclient udpserver dopserv

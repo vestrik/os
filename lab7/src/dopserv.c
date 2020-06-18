@@ -26,7 +26,7 @@ void *servtcp(void *arg)
       int lfd, cfd;
   int nread;
   const size_t kSize = sizeof(struct sockaddr_in);
-      printf("tcp serv started\n");
+      
     thread_data *tdata=(thread_data *)arg; 
     int buff=tdata->tbuffsize;   
     int port=tdata->tport;   
@@ -55,7 +55,7 @@ void *servtcp(void *arg)
     perror("listen");
     exit(1);
   }
-
+  printf("tcp serv started\n");
   while (1) {
     unsigned int clilen = kSize;
 
@@ -80,7 +80,7 @@ void *servtcp(void *arg)
 
 void *servudp(void *arg)
 {
-    printf("udp serv started\n");
+    
     thread_data *tdata=(thread_data *)arg; 
     int buff=tdata->tbuffsize;   
     int port=tdata->tport;   
@@ -101,20 +101,27 @@ void *servudp(void *arg)
         perror("bind problem");
         exit(1);
         }
-    printf("SERVER starts...\n");
-    while (1) {
-        unsigned int len = SLEN;
-        if ((n = recvfrom(sockfd, mesg, buff, 0, (SADDR *)&cliaddr, &len)) < 0) {
-            perror("recvfrom");
-            exit(1);
-            }
-        mesg[n] = 0;
-        printf("REQUEST %s      FROM %s : %d\n", mesg, inet_ntop(AF_INET, (void *)&cliaddr.sin_addr.s_addr, ipadr, 16),ntohs(cliaddr.sin_port));
-        if (sendto(sockfd, mesg, n, 0, (SADDR *)&cliaddr, len) < 0) {
-            perror("sendto");
-            exit(1);
-            }
-        } 
+   printf("udp serv started\n");
+  while (1) {
+    unsigned int len = SLEN;
+
+    if ((n = recvfrom(sockfd, mesg, buff, 0, (SADDR *)&cliaddr, &len)) < 0) {
+      perror("recvfrom");
+      exit(1);
+    }
+    mesg[n] = 0;
+
+    printf("REQUEST %s      FROM %s : %d\n", mesg,
+           inet_ntop(AF_INET, (void *)&cliaddr.sin_addr.s_addr, ipadr, 16),
+           ntohs(cliaddr.sin_port));
+
+    mesg[n] = 0;
+
+    if (sendto(sockfd, mesg, n, 0, (SADDR *)&cliaddr, len) < 0) {
+      perror("sendto");
+      exit(1);
+    }
+  }
 
 }
 
@@ -188,7 +195,7 @@ char serv[3];
   struct servArgs args[threads_num];
   for (int i=0;i<threads_num;i++)
   {
-      args[i].tport = SERV_PORT+i;
+      args[i].tport = SERV_PORT;
       args[i].tbuffsize = BUFSIZE;
     }
     

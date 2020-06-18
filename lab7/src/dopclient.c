@@ -89,7 +89,6 @@ void *servudp(void *arg)
   struct sockaddr_in servaddr;
   struct sockaddr_in cliaddr;
 
-
   memset(&servaddr, 0, sizeof(servaddr));
   servaddr.sin_family = AF_INET;
   servaddr.sin_port = htons(port);
@@ -114,12 +113,10 @@ void *servudp(void *arg)
     if (recvfrom(sockfd, recvline, buff, 0, NULL, NULL) == -1) {
       perror("recvfrom problem");
       exit(1);
-    }
-
-    printf("REPLY FROM SERVER= %s\n", recvline);
+    }    printf("REPLY FROM SERVER= %s\n", *answer2);
   }
   close(sockfd);
-
+recvline
 }
 
 
@@ -200,7 +197,7 @@ int main(int argc, char **argv) {
   struct servArgs args[threads_num];
   for (int i=0;i<threads_num;i++)
   {
-      args[i].tport = SERV_PORT+i;
+      args[i].tport = SERV_PORT;
       args[i].tbuffsize = BUFSIZE;
       args[i].taddr = ADDR;
     }

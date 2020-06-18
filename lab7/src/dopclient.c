@@ -17,6 +17,7 @@
 //#define BUFSIZE 1024
 #define SADDR struct sockaddr
 #define SLEN sizeof(struct sockaddr_in)
+#define SIZE sizeof(struct sockaddr_in)
 
 
 typedef struct servArgs {
@@ -27,12 +28,57 @@ typedef struct servArgs {
 
 void *servtcp(void *arg)
 {
+    printf("tcp client started\n");
+    thread_data *tdata=(thread_data *)arg; 
+    int buff=tdata->tbuffsize;   
+    int port=tdata->tport;   
+    char* addr = tdata->taddr;
+  int fd;
+  int nread;
+    
+  int sockfd, n;
+  char sendline[buff], recvline[buff + 1];  
+  struct sockaddr_in cliaddr;
+  char buf[buff];
+  struct sockaddr_in servaddr;
+
+
+  if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    perror("socket creating");
+    exit(1);
+  }
+
+  memset(&servaddr, 0, SIZE);
+  servaddr.sin_family = AF_INET;
+
+  if (inet_pton(AF_INET, addr, &servaddr.sin_addr) <= 0) {
+    perror("bad address");    
+    exit(1);
+  }
+
+  servaddr.sin_port = htons(port);
+
+  if (connect(fd, (SADDR *)&servaddr, SIZE) < 0) {
+    perror("connect");
+    exit(1);
+  }
+
+  write(1, "Input message to send\n", 22);
+  while ((nread = read(0, buf, buff)) > 0) {
+    if (write(fd, buf, nread) < 0) {
+      perror("write");
+      exit(1);
+    }
+  }
+
+  close(fd);
+  exit(0);
 
 }
 
 void *servudp(void *arg)
 {
-  printf("thread started\n");
+  printf("udp client started\n");
     thread_data *tdata=(thread_data *)arg; 
     int buff=tdata->tbuffsize;   
     int port=tdata->tport;   
@@ -83,12 +129,14 @@ int main(int argc, char **argv) {
  int BUFSIZE = -1;
  int SERV_PORT = -1;	
  char* ADDR = "1";
+ char serv[3];
  while (true) {
 	int current_optind = optind ? optind : 1;
 	
 	static struct option options[] = {{"bufsize", required_argument, 0, 0},
 	                                      {"serv_port", required_argument, 0, 0},
 	                                      {"addr", required_argument, 0, 0},
+                                          {"serv_type", required_argument, 0, 0},
 	                                      {0, 0, 0, 0}};
 	int option_index = 0;
 	int c = getopt_long(argc, argv, "",options, &option_index);
@@ -121,6 +169,14 @@ int main(int argc, char **argv) {
 	              }
                 
 	            break;
+                case 3:                
+                strcpy(serv,optarg);
+                if (strlen(serv) != 3) {
+	                printf("serv_type must be an type of server - udp or tcp)\n");
+	                return 1;
+	              }
+                
+	            break;
 	        }
 	
 	      case '?':
@@ -144,21 +200,31 @@ int main(int argc, char **argv) {
   struct servArgs args[threads_num];
   for (int i=0;i<threads_num;i++)
   {
-      args[i].tport = SERV_PORT;
+      args[i].tport = SERV_PORT+i;
       args[i].tbuffsize = BUFSIZE;
       args[i].taddr = ADDR;
     }
-    printf("thread before create\n");
-  if(pthread_create(&pthread1, NULL, (void*)servudp, (void *)&(args[0])))
+ 
+  if (!strcmp(serv,"udp"))
+  {if(pthread_create(&pthread1, NULL, (void*)servudp, (void *)&(args[0])))
       {
           printf("Server: Error: pthread_create failed!\n");
           return 1;
           }
+  }
+   if (!strcmp(serv,"tcp"))
+  {if(pthread_create(&pthread2, NULL, (void*)servtcp, (void *)&(args[1])))
+      {
+          printf("Server: Error: pthread_create failed!\n");
+          return 1;
+          }
+  }
 
-  pthread_join(pthread1, NULL);
-  printf("thread ended\n");
-
-
+  if (!strcmp(serv,"udp"))
+  {  pthread_join(pthread1, NULL);}
+    if (!strcmp(serv,"tcp"))
+  {  pthread_join(pthread2, NULL);}
+ 
 
 
 }

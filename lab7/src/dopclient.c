@@ -113,10 +113,10 @@ void *servudp(void *arg)
     if (recvfrom(sockfd, recvline, buff, 0, NULL, NULL) == -1) {
       perror("recvfrom problem");
       exit(1);
-    }    printf("REPLY FROM SERVER= %s\n", *answer2);
+    }    printf("REPLY FROM SERVER= %s\n", recvline);
   }
   close(sockfd);
-recvline
+
 }
 
 

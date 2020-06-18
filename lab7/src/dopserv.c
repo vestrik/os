@@ -65,17 +65,19 @@ void *servtcp(void *arg)
     }
     printf("connection established\n");
     FILE* fp;      
-    //fp = fopen("server.txt", "w+");
-    //fprintf(fp, ""); 
+    fp = fopen("server.txt", "w+");
+    fprintf(fp, ""); 
 
-    while ((nread = read(cfd, buf, buff)) > 0) {
-    
-     // write(1, &buf, nread);
+    while ((nread = read(cfd, buf, buff)) > 0) {   
+     
 
       int i=atoi(buf);    
       fp = fopen("server.txt", "a+");
       fprintf(fp, "%d\n", i); 
-      printf("%d\n",i);
+      printf(" %4d ",i);
+      if ((i%10==0) && (i!=0))
+      {printf("\n");}
+      
       fclose(fp);
     }
     
@@ -114,6 +116,12 @@ void *servudp(void *arg)
         }
    printf("udp serv started\n");
 
+   int k;
+   int mass[255]={-1};
+   int massf[255];
+    int l=0;
+    char str[buff];
+
   while (1) {
     unsigned int len = SLEN;    
 
@@ -124,12 +132,66 @@ void *servudp(void *arg)
     mesg[n] = '\0';  
     
 
-    printf("REQUEST %s      FROM %s : %d\n", mesg,
-           inet_ntop(AF_INET, (void *)&cliaddr.sin_addr.s_addr, ipadr, 16),
-           ntohs(cliaddr.sin_port));    
+    k=atoi(mesg);
+    
+    if (k<25||k>30)
+    {  mass[l]=k;  
 
+        //printf("REQUEST %s      FROM %s : %d\n", mesg,inet_ntop(AF_INET, (void *)&cliaddr.sin_addr.s_addr, ipadr, 16),ntohs(cliaddr.sin_port)); 
+
+   } 
+ 
+   l++;
+   if(l==50)
+    {  FILE* fp;
+        fp = fopen ("client.txt", "r");
+        int i=0;
+        printf("tcp file\n"); 
+        while(!feof(fp))
+        {
+            if (fgets(str, sizeof(str), fp))
+            {
+                //if(atoi(str))
+                   {
+                        massf[i]=atoi(str);
+                        printf(" %4d ",massf[i]);
+                        if ((i%10==0) && i!=0)
+                            printf("\n"); 
+                   }
+
+            }
+            i++;
+        } 
+        close(fp);
+        printf("\n udp socket\n");       
+
+       for (int i=0;i<51;i++)
+        {
+           printf(" %4d ",mass[i]);
+           if ((i%10==0) && i!=0)
+                printf("\n"); 
+        }
+        for (int i=0;i<51;i++)
+        {             
+            if(mass[i]!=massf[i])
+            {
+                printf("packet %d lost! \n",massf[i]);
+                mass[i]=massf[i];
+            }       
+
+
+        }
+        printf("\n restore lost packets from tcp socket. Udp packets now:\n");       
+
+       for (int i=0;i<51;i++)
+        {
+           printf(" %4d ",mass[i]);
+           if ((i%10==0) && i!=0)
+                printf("\n"); 
+        }
+    }
+   
   }
-  
 
 }
 

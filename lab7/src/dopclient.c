@@ -28,7 +28,7 @@ typedef struct servArgs {
   char* taddr;
 } thread_data;
 
-void *servtcp(void *arg)
+void *clienttcp(void *arg)
 {
     printf("tcp client started\n");
     thread_data *tdata=(thread_data *)arg; 
@@ -70,8 +70,7 @@ void *servtcp(void *arg)
   FILE* fp;
   fp = fopen ("client.txt", "r");
   write(1, "after open\n", 13);
-  	char str[buff];
-	int serverCounter = 0;
+  	char str[buff];	
     while(!feof(fp))
     {
         if (fgets(str, sizeof(str), fp))
@@ -93,7 +92,7 @@ void *servtcp(void *arg)
 
 }
 
-void *servudp(void *arg)
+void *clientudp(void *arg)
 {
   printf("udp client started\n");
     thread_data *tdata=(thread_data *)arg; 
@@ -122,13 +121,11 @@ void *servudp(void *arg)
   write(1, "Enter string\n", 13);
 
   FILE* cfp;
-  pthread_mutex_lock(&mut);
   cfp = fopen("client.txt", "w+");
   fprintf(cfp, "");     
 
-  for (int i=1;i<=5;i++)
-  {
-      
+  for (int i=1;i<=50;i++)
+  {      
       fprintf(cfp, "%d\n", i); 
 	  sprintf(sendline,"%d",i);
       if (sendto(sockfd, sendline, buff, 0, (SADDR *)&servaddr, SLEN) == -1) {
@@ -137,19 +134,22 @@ void *servudp(void *arg)
     }     
       
   }
-  fclose(cfp);
-  pthread_mutex_unlock(&mut);
+  fclose(cfp); 
    pthread_t pthr;
    struct servArgs argss[1];
     argss[0].tport = port;
     argss[0].tbuffsize = buff;
     argss[0].taddr = addr;
+    if(pthread_create(&pthr, NULL, (void*)clienttcp, (void *)&(argss[0])))
+      {
+          printf("Server: Error: pthread_create failed!\n");
+          return 1;
+          }
+
+    pthread_join(pthr, NULL); 
 
   close(sockfd);
-
-}
-
-
+  }
 
 
 int main(int argc, char **argv) {
@@ -210,38 +210,25 @@ int main(int argc, char **argv) {
 	    return 1;
 	}  
 
+  pthread_t pthread1;
+  struct servArgs args[1];
 
-
-  int threads_num=2;
-  pthread_t pthread1, pthread2;
-  struct servArgs args[threads_num];
-  for (int i=0;i<threads_num;i++)
-  {
-      args[i].tport = SERV_PORT;
-      args[i].tbuffsize = BUFSIZE;
-      args[i].taddr = ADDR;
-    }
+    args[0].tport = SERV_PORT;
+    args[0].tbuffsize = BUFSIZE;
+    args[0].taddr = ADDR;
+    
  
-  //if (!strcmp(serv,"udp"))
-  {if(pthread_create(&pthread1, NULL, (void*)servudp, (void *)&(args[0])))
-      {
-          printf("Server: Error: pthread_create failed!\n");
-          return 1;
-          }
-  }
-  //if (!strcmp(serv,"tcp"))
-  {if(pthread_create(&pthread2, NULL, (void*)servtcp, (void *)&(args[0])))
+ 
+  {if(pthread_create(&pthread1, NULL, (void*)clientudp, (void *)&(args[0])))
       {
           printf("Server: Error: pthread_create failed!\n");
           return 1;
           }
   }
 
-  //if (!strcmp(serv,"udp"))
+
+
     pthread_join(pthread1, NULL);
-   // if (!strcmp(serv,"tcp"))
-    pthread_join(pthread2, NULL);
- 
 
 
 }

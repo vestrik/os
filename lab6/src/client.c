@@ -27,7 +27,7 @@ struct Server {
 
 bool ConvertStringToUI64(const char *str, uint64_t *val) {
   char *end = NULL;
-  unsigned long long i = strtoull(str, &end, 10);
+  unsigned long long i = strtoull(str, &end, 10); //str to unsigned long integer
   if (errno == ERANGE) {
     fprintf(stderr, "Out of uint64_t range: %s\n", str);
     return false;
@@ -53,26 +53,26 @@ void sendTaskToServer(void * args)
 {
 		    struct TaskToServer * task = (struct TaskToServer *)args;
 		    printf("Client: sending data to server begin = %lu end = %lu mod = %lu\n", task->begin, task->end, task->mod);
-			struct hostent *hostname = gethostbyname((task->server).ip);
+			struct hostent *hostname = gethostbyname((task->server).ip); //получаем имя машины
 			if (hostname == NULL)
 			{
 				fprintf(stderr, "gethostbyname failed with %s\n", task->server.ip);
 				exit(1);
 			}
-            
+            //Заполняем структуру адреса, на котором будет работать сервер
 			struct sockaddr_in server;
-			server.sin_family = AF_INET;
-			server.sin_port = htons((task->server).port);
-			server.sin_addr.s_addr = *((unsigned long *)hostname->h_addr);
+			server.sin_family = AF_INET; //ip
+			server.sin_port = htons((task->server).port); //port
+			server.sin_addr.s_addr = *((unsigned long *)hostname->h_addr); //сетевой интерфейс
 
-			int sck = socket(AF_INET, SOCK_STREAM, 0);
+			int sck = socket(AF_INET, SOCK_STREAM, 0); //создаем сокет, AF_INET для сетевого протокола IPv4
 			if (sck < 0)
 			{
 				fprintf(stderr, "Client: Socket creation failed!\n");
 				exit(1);
 			}
             //printf("Client: socket created\n");
-			if (connect(sck, (struct sockaddr *)&server, sizeof(server)) < 0)
+			if (connect(sck, (struct sockaddr *)&server, sizeof(server)) < 0) //Устанавливаем соединение с сервером
 			{
 				fprintf(stderr, "Client: Connection failed\n");
 				exit(1);
@@ -128,13 +128,13 @@ struct Server* parseFile(char* fileName)
 		fprintf(stderr, "Client: File open error\n");
 		return NULL;
 	}
-	char ipPort[255+6];
+	char ipPort[255];
 	int serverCounter = 0;
 	while (fgets(ipPort, sizeof(ipPort), file) != NULL)
 	{
 		serverCounter++;
 	}
-	fseek(file, 0, SEEK_SET);
+	fseek(file, 0, SEEK_SET); //указатель в начало файла
 	struct Server *to = malloc(sizeof(struct Server) * (serverCounter+1));
 	int j = 0;
 	while (fgets(ipPort, sizeof(ipPort), file) != NULL)
@@ -168,11 +168,11 @@ int getServerNum(struct Server* s)
 	return i;
 }
 
-uint64_t main(int argc, char **argv)
+int main(int argc, char **argv)
 {
 	uint64_t k = -1;
 	uint64_t mod = -1;
-	char servers[255] = { '\0' }; //The max filename length is 255 bytes
+	char servers[255] = { '\0' }; ////
 
 	while (true)
 	{

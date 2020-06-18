@@ -95,29 +95,31 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	int server_fd = socket(AF_INET, SOCK_STREAM, 0);
+	int server_fd = socket(AF_INET, SOCK_STREAM, 0); //создаем сокет, SOCK_STREAM - надёжная потокоориентированная служба (сервис) или потоковый сокет
+    //AF_INET для сетевого протокола IPv4
 	if (server_fd < 0)
 	{
 		fprintf(stderr, "Server: Can not create server socket!");
 		return 1;
 	}
 
+    //Заполняем структуру адреса, на котором будет работать сервер
 	struct sockaddr_in server;
-	server.sin_family = AF_INET;
-	server.sin_port = htons((uint16_t)port);
-	server.sin_addr.s_addr = htonl(INADDR_ANY);
+	server.sin_family = AF_INET; //ip
+	server.sin_port = htons((uint16_t)port); //post
+	server.sin_addr.s_addr = htonl(INADDR_ANY); //любой сетевой интерфейс
 
 	int opt_val = 1;
-	setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof(opt_val));
+	setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof(opt_val)); //параметры сокета SO_REUSEADDR - разрешает повторное использование локальных адресов
 
-	int err = bind(server_fd, (struct sockaddr *)&server, sizeof(server));
+	int err = bind(server_fd, (struct sockaddr *)&server, sizeof(server));  //привязать адрес к сокету
 	if (err < 0)
 	{
 		fprintf(stderr, "Server: Can not bind to socket!");
 		return 1;
 	}
 
-	err = listen(server_fd, 128);
+	err = listen(server_fd, 128); // Создание очереди соединений, 128 - длинна очереди входящих запросов на установление соединения. 
 	if (err < 0)
 	{
 		fprintf(stderr, "Could not listen on socket\n");
@@ -130,7 +132,7 @@ int main(int argc, char **argv)
 	{
 		struct sockaddr_in client;
 		socklen_t client_len = sizeof(client);
-		int client_fd = accept(server_fd, (struct sockaddr *)&client, &client_len);
+		int client_fd = accept(server_fd, (struct sockaddr *)&client, &client_len); // принятие запроса на установление соединения от удаленного хоста
 
 		if (client_fd < 0)
 		{
@@ -142,7 +144,7 @@ int main(int argc, char **argv)
 		{
 			unsigned int buffer_size = sizeof(uint64_t) * 3;
 			char from_client[buffer_size];
-			int read = recv(client_fd, from_client, buffer_size, 0);
+			int read = recv(client_fd, from_client, buffer_size, 0); //читаем из сокета
 
 			if (!read)
 				break;
@@ -215,7 +217,7 @@ int main(int argc, char **argv)
 
 			char buffer[sizeof(total)];
 			memcpy(buffer, &total, sizeof(total));
-			err = send(client_fd, buffer, sizeof(total), 0);
+			err = send(client_fd, buffer, sizeof(total), 0); //отправляем данные
             memcpy(buffer, &f, sizeof(f));
 			err = send(client_fd, buffer, sizeof(f), 0);
 			if (err < 0)

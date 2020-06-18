@@ -165,13 +165,14 @@ void *servudp(void *arg)
         close(fp);
         printf("\n udp socket\n");       
 
-       for (int i=0;i<51;i++)
+       for (int i=0;i<50;i++)
         {
            printf(" %4d ",mass[i]);
            if ((i%10==0) && i!=0)
                 printf("\n"); 
         }
-        for (int i=0;i<51;i++)
+        printf("\n");
+        for (int i=0;i<50;i++)
         {             
             if(mass[i]!=massf[i])
             {
@@ -183,12 +184,13 @@ void *servudp(void *arg)
         }
         printf("\n restore lost packets from tcp socket. Udp packets now:\n");       
 
-       for (int i=0;i<51;i++)
+       for (int i=0;i<50;i++)
         {
            printf(" %4d ",mass[i]);
            if ((i%10==0) && i!=0)
                 printf("\n"); 
         }
+        printf("\n");
     }
    
   }

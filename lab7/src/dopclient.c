@@ -63,13 +63,11 @@ void *clienttcp(void *arg)
   if (connect(fd, (SADDR *)&servaddr, SIZE) < 0) {
     perror("connect");
     exit(1);
-  }
-
-  write(1, "before open\n", 13);
+  } 
 
   FILE* fp;
   fp = fopen ("client.txt", "r");
-  write(1, "after open\n", 13);
+
   	char str[buff];	
     while(!feof(fp))
     {
@@ -85,7 +83,6 @@ void *clienttcp(void *arg)
 
     }
     close(fp);
-    write(1, "after close file tcp\n", 13);
 
   close(fd);
   exit(0);
@@ -118,7 +115,7 @@ void *clientudp(void *arg)
     exit(1);
   }
 
-  write(1, "Enter string\n", 13);
+ 
 
   FILE* cfp;
   cfp = fopen("client.txt", "w+");

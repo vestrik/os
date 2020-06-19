@@ -19,7 +19,7 @@
 #define SLEN sizeof(struct sockaddr_in)
 #define SIZE sizeof(struct sockaddr_in)
 
-pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
+
 
 
 typedef struct servArgs {
@@ -212,8 +212,7 @@ int main(int argc, char **argv) {
 
     args[0].tport = SERV_PORT;
     args[0].tbuffsize = BUFSIZE;
-    args[0].taddr = ADDR;
-    
+    args[0].taddr = ADDR;   
  
  
   {if(pthread_create(&pthread1, NULL, (void*)clientudp, (void *)&(args[0])))
@@ -222,8 +221,6 @@ int main(int argc, char **argv) {
           return 1;
           }
   }
-
-
 
     pthread_join(pthread1, NULL);
 

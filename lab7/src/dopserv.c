@@ -18,6 +18,8 @@
 #define SLEN sizeof(struct sockaddr_in)
 int active_child_processes=0;
 
+int f=0;
+
 
 
 int main(int argc, char **argv)  {
@@ -78,6 +80,9 @@ int BUFSIZE = -1;
       }  
 
 
+    int mass[100]={-1};
+    int pipefd[2];  
+    pipe(pipefd);
 
     pid_t child_pid = fork(); 
     if (child_pid >= 0) {
@@ -87,7 +92,7 @@ int BUFSIZE = -1;
             int lfd, cfd;
             int nread;
             const size_t kSize = sizeof(struct sockaddr_in);
-            char buf[BUFSIZE];
+            char buf1[BUFSIZE],buf2[BUFSIZE];
             struct sockaddr_in servaddr;
             struct sockaddr_in cliaddr;
 
@@ -111,6 +116,9 @@ int BUFSIZE = -1;
                 exit(1);
             }
             printf("tcp serv started\n");
+
+            int k,l;
+            int mass[100];
             while (1) {
                 unsigned int clilen = kSize;
 
@@ -125,7 +133,7 @@ int BUFSIZE = -1;
                 fclose(fp);*/
                 
 
-                while ((nread = read(cfd, buf, BUFSIZE)) > 0) {  
+               // while ((nread = read(cfd, buf, BUFSIZE)) > 0) {  
                 
                 /*int i=atoi(buf);    
                 fp = fopen("server.txt", "a+");
@@ -135,14 +143,59 @@ int BUFSIZE = -1;
                 {printf("\n");}
                 
                 fclose(fp);*/
-                printf("tcp mess:%s\n",buf);
+                read(cfd, buf1, BUFSIZE);
+                printf("tcp count:%s\n",buf1);                
+                write(pipefd[1],buf1,sizeof(buf1));
+                l=atoi(buf1);    
+                sleep(1);         
+    
+                read(pipefd[0],buf2,sizeof(buf2));
+                k=atoi(buf2);
+                printf("tcp from udp count:%s\n",buf2);                
+                printf("total packet:%d,udp packet:%d\n",l,k);
+                int mass[k];
+                for (int i=0;i<k;i++)
+                {
+                    read(pipefd[0],buf2,sizeof(buf2));                    
+                    mass[i]=atoi(buf2);
+
                 }
-                
+                printf("tcp mass:\n");
+
+                for (int i=0;i<k;i++)
+                {
+                    printf(" %4d ",mass[i]);
+                    if ((i%10==0) && i!=0)
+                        printf("\n");                        
+                }
+                printf("\n");
+                printf("tcp send numbers of lost packets\n");
+                int p=l-k+1;                
+                sprintf(buf1,"%d",p);
+                write(cfd,buf1,sizeof(buf1));             
+
+                for (int i=0;i<k;i++)
+                {
+                    if (mass[i]!=i)
+                    {
+                        sprintf(buf1,"%d",i);
+                        //printf("dont receive:%s\n",buf1);
+                        write(cfd,buf1,sizeof(buf1));
+                    }
+
+                }
+                printf("\n");                
+
+
+
+
+                close(pipefd[1]);               
 
                 if (nread == -1) {
                 perror("read");
                 exit(1);
                 }
+                printf("tcp closed");
                 close(cfd);
             }                   
 
@@ -167,79 +220,75 @@ int BUFSIZE = -1;
                 perror("bind problem");
                 exit(1);
                 }
-        printf("udp serv started\n");
+            printf("udp serv started\n");
 
-        int k;   
-        
+            int k;    
             int l=0;
             char str[BUFSIZE];
-
-        while (1) {
-            unsigned int len = SLEN;    
-
-            if ((n = recvfrom(sockfd, mesg, BUFSIZE, 0, (SADDR *)&cliaddr, &len)) < 0) {
-            perror("recvfrom");
-            exit(1);
-            }
-            mesg[n] = '\0';  
-            printf("udp mess:%s\n",mesg);
             
+            read(pipefd[0],mesg,sizeof(mesg));
+            printf("udp from pipe %s\n",mesg);
+            k=atoi(mesg);
+            int h;
 
-            /*k=atoi(mesg);    
-            if (k<25||k>30)
-            {  mass[l]=k;    }  
-        l++;
-        if(l==50)
-            {       
-                FILE* fp;
-                fp = fopen ("server.txt", "r");
-                int i=0;
-                printf("tcp file\n"); 
-                while(!feof(fp))
-                {
-                    if (fgets(str, sizeof(str), fp))
-                    {                
-                        {    massf[i]=atoi(str);
-                                printf(" %4d ",massf[i]);
-                                if ((i%10==0) && i!=0)
-                                    printf("\n"); 
-                        }
+            while (1) {
+                unsigned int len = SLEN;    
 
-                    }
-                    i++;
-                } 
-                close(fp);
-                
-                printf("\n udp socket\n");       
-
-            for (int l=0;l<i;l++)
-                {
-                printf(" %4d ",mass[l]);
-                if ((l%10==0) && l!=0)
-                        printf("\n"); 
+                if ((n = recvfrom(sockfd, mesg, BUFSIZE, 0, (SADDR *)&cliaddr, &len)) < 0) {
+                perror("recvfrom");
+                exit(1);
                 }
-                printf("\n");
-                for (int l=0;l<i;l++)
-                {             
-                    if(mass[l]!=massf[l])
+                mesg[n] = '\0';         
+                mass[l]=atoi(mesg);                 
+                                
+                l++;
+                if(l==70)
+                {
+                                        
+                    sprintf(mesg,"%d",l);
+                    write(pipefd[1],mesg,sizeof(mesg));
+                    printf("udp try to pipe %s\n",mesg);
+                    
+                    for (int i=0;i<l;i++)
                     {
-                        printf("packet %d lost! \n",massf[l]);
-                        mass[l]=massf[l];
-                    }       
+                        printf(" %4d ",mass[i]);
+                        if ((i%10==0) && i!=0)
+                            printf("\n");                        
+                    }
+                    if (k!=l)
+                        {for (int i=0;i<l;i++)   
+                            {                        
+                                sprintf(mesg,"%d",mass[i]);
+                                write(pipefd[1],mesg,sizeof(mesg)); 
+                            }                       
+
+                        }  
+
+                    printf("\n");                        
+
+                    int b=k-l+1;        
+                    int e[b];             
+                    for (int i=0;i<b;i++)
+                    {                        
+                        if ((n = recvfrom(sockfd, mesg, BUFSIZE, 0, (SADDR *)&cliaddr, &len)) < 0) {
+                        perror("recvfrom");
+                        exit(1);
+                        }
+                        mesg[n] = '\0';         
+                        e[i]=atoi(mesg);
+                        printf("udp losted packet is:%d\n",e[i]);                       
+
+                        
+                    }                   
 
 
-                }
-                printf("\n restore lost packets from tcp socket. Udp packets now:\n");       
+                    printf("\n"); 
 
-            for (int l=0;l<i;l++)
-                {
-                printf(" %4d ",mass[l]);
-                if ((l%10==0) && l!=0)
-                        printf("\n"); 
-                }
-                printf("\n");
-            }*/
-        
+
+                }                                
+
+
+            
             }            
         } 
     }

@@ -84,12 +84,12 @@ int main(int argc, char **argv) {
 
 
     int mass[100];
-    for (int i=0;i<100;i++)
+    for (int i=0;i<=100;i++)
     {
         mass[i]=i;
-    } 
-    //int pipefd[2];  
-    //pipe(pipefd);
+    }     
+    int pipefd[2];  
+    pipe(pipefd);
 
     pid_t child_pid = fork(); 
     if (child_pid >= 0) {
@@ -126,27 +126,32 @@ int main(int argc, char **argv) {
                 exit(1);
             } 
 
-            /*FILE* fp;
-            fp = fopen ("client.txt", "r");
+            
+            read(pipefd[0],sendline,sizeof(sendline));
 
-                char str[buff];	
-                while(!feof(fp))
+
+            //printf("%d\n",mass[99]);
+            //sprintf(buf,"%d",mass[99]);
+            printf("tcp from pipe %s\n",sendline);
+            write(fd,sendline,sizeof(sendline)); 
+            //strcpy(sendline,"123");
+            //sleep(2);         
+
+            read(fd,sendline,sizeof(sendline));
+            printf("tcp count of not received packets:%s\n",sendline);
+            int q=atoi(sendline);
+            write(pipefd[1],sendline,sizeof(sendline)); 
+            for (int i=0;i<q;i++)
                 {
-                    if (fgets(str, sizeof(str), fp))
-                    {          
-                                
-                        if (write(fd, str, sizeof(str)) < 0) {
-                            perror("write");
-                            exit(1);
-                        }
-                    }
+                    read(fd,sendline,sizeof(sendline));
+                    printf("tcp not received packet:%s\n",sendline);
+                    write(pipefd[1],sendline,sizeof(sendline)); 
+
+                }                
 
 
-                }
-                close(fp);*/
-                printf("%d\n",mass[99]);
-                sprintf(buf,"%d",mass[99]);
-                write(fd,buf,sizeof(buf));                
+
+            close(pipefd[0]);             
 
             close(fd);
             exit(0);     
@@ -173,32 +178,54 @@ int main(int argc, char **argv) {
                 exit(1);
             } 
 
-            /*FILE* cfp;
-            cfp = fopen("client.txt", "w+");
-            fprintf(cfp, "");     
+            int k=0;
+            for (int i=0;i<100;i++)
+            {
+                if (mass[i]>0)
+                {k++;}
 
-            for (int i=1;i<=50;i++)
-            {      
-                fprintf(cfp, "%d\n", i); 
-                sprintf(sendline,"%d",i);
-                if (sendto(sockfd, sendline, buff, 0, (SADDR *)&servaddr, SLEN) == -1) {
-                perror("sendto problem");
-                exit(1);
-                }     
-                
             }
-            fclose(cfp); */
-            printf("%d\n",mass[98]);
-            sprintf(sendline,"%d",mass[98]);
-            sendto(sockfd, sendline, BUFSIZE, 0, (SADDR *)&servaddr, SLEN);
+            sprintf(sendline,"%d",k);
+            
+            write(pipefd[1],sendline,sizeof(sendline));
 
+           
+            //sprintf(sendline,"%d",mass[98]);
+            
+            for (int i=0;i<20;i++)
+            {
+                sprintf(sendline,"%d",mass[i]);
+                sendto(sockfd, sendline, BUFSIZE, 0, (SADDR *)&servaddr, SLEN);
+            }
+            for (int i=50;i<100;i++)
+            {
+                sprintf(sendline,"%d",mass[i]);
+                sendto(sockfd, sendline, BUFSIZE, 0, (SADDR *)&servaddr, SLEN);
+            }
+            
+            read(pipefd[0],sendline,sizeof(sendline));
+            int z=atoi(sendline);
+            
+            for (int i=0;i<z;i++)
+            {
+                read(pipefd[0],sendline,sizeof(sendline));
+                int y=atoi(sendline);
+                printf("\tudp not reseived packet:%d\n",y);
+                sprintf(sendline,"%d",mass[y]);
+                sendto(sockfd, sendline, BUFSIZE, 0, (SADDR *)&servaddr, SLEN);
+
+            }
+
+
+            close(pipefd[0]);
+            close(pipefd[1]);
             close(sockfd);       
 
         } 
     }
 
     while (active_child_processes > 0) {
-    // your code here
+    
     int status = -1;
     waitpid(-1, &status, 0);
 
